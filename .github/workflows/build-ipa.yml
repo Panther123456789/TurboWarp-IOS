@@ -1,0 +1,49 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create app structure
+      run: |
+        mkdir -p build/Payload/TurboWarp.app
+        cp index.html build/Payload/TurboWarp.app/
+        cp manifest.json build/Payload/TurboWarp.app/
+        cp service-worker.js build/Payload/TurboWarp.app/
+        cp offline.html build/Payload/TurboWarp.app/
+        cp icon-*.png build/Payload/TurboWarp.app/
+    
+    - name: Create Info.plist
+      run: |
+        mkdir -p build/Payload/TurboWarp.app/_CodeSignature
+        echo '<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleIdentifier</key>
+          <string>com.turbowarp.ios</string>
+          <key>CFBundleName</key>
+          <string>TurboWarp</string>
+          <key>CFBundleVersion</key>
+          <string>1.0</string>
+        </dict>
+        </plist>' > build/Payload/TurboWarp.app/Info.plist
+    
+    - name: Create IPA
+      run: |
+        cd build
+        zip -r ../TurboWarp.ipa Payload/
+    
+    - name: Upload IPA
+      uses: actions/upload-artifact@v3
+      with:
+        name: TurboWarp-IPA
+        path: TurboWarp.ipa
