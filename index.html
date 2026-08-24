@@ -3,12 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TurboWarp">
+    <meta name="theme-color" content="#111111">
+    <meta name="description" content="TurboWarp - Schneller Scratch Editor">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-180.png">
     <title>TurboWarp Editor</title>
     <style>
-        body, html, iframe { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background: #111; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body, html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background: #111;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        #app-container {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #offline-message {
+            display: none;
+            height: 100%;
+            width: 100%;
+            background: #111;
+            color: #fff;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #offline-message.show {
+            display: flex;
+        }
+        
+        #offline-message h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        #offline-message p {
+            font-size: 14px;
+            color: #999;
+        }
     </style>
 </head>
 <body>
-    <iframe src="https://turbowarp.org" frameborder="0"></iframe>
+    <div id="app-container">
+        <iframe id="turbowarp-frame" src="https://turbowarp.org" allow="camera *; microphone *; clipboard-write"></iframe>
+        <div id="offline-message">
+            <h1>⚠️ Offline</h1>
+            <p>TurboWarp benötigt eine Internetverbindung</p>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(err => {
+                console.log('Service Worker Registrierung fehlgeschlagen:', err);
+            });
+        }
+
+        // Überprüfe Online-Status
+        function updateOnlineStatus() {
+            const offlineMsg = document.getElementById('offline-message');
+            const frame = document.getElementById('turbowarp-frame');
+            
+            if (navigator.onLine) {
+                offlineMsg.classList.remove('show');
+                frame.style.display = 'block';
+            } else {
+                offlineMsg.classList.add('show');
+                frame.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        
+        // Initial check
+        updateOnlineStatus();
+
+        // Verhindere unerwünschte Gesten
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+    </script>
 </body>
 </html>
